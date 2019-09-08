@@ -7,7 +7,7 @@ import 'react-select/dist/react-select.css';
 
 import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours } from '../utils';
 import { fetchIssues, issuesSet } from '../actions/issue';
-import { fetchMembers, membersSet } from '../actions/member';
+import { fetchMembers, membersAdd, membersInit, membersSet } from '../actions/member';
 import { fetchMilestones, milestonesSet } from '../actions/milestone';
 import { fetchProjects, projectsSet } from '../actions/project';
 import { setFilters } from '../actions/filters';
@@ -39,7 +39,7 @@ class Dashboard extends React.Component {
         }, () => {
             this.props.refresh(projects, () => this.setState({
                 refreshing: false
-            }));
+            }), this.props.settings);
         });
     }
 
@@ -153,6 +153,7 @@ export default connect(
             issues,
             allMembers,
             members,
+            settings: state.settings,
             milestones: state.milestones,
             projects: state.projects,
             filters: state.filters,
@@ -163,11 +164,20 @@ export default connect(
     },
     (dispatch) => {
         return {
-            refresh: (projectIds, callback) => {
-                dispatch(fetchMembers()).then(members => {
-                    dispatch(membersSet(members));
-                });
-                dispatch(fetchProjects()).then(projects => {
+            refresh: (projectIds, callback, settings) => {
+                if (settings.membersSearchTerms) {
+                    settings.membersSearchTerms.forEach(searchTerm => {
+                        dispatch(membersInit());
+                        dispatch(fetchMembers(searchTerm)).then(members => {
+                            dispatch(membersAdd(members));
+                        });
+                    })
+                } else {
+                    dispatch(fetchMembers()).then(members => {
+                        dispatch(membersSet(members));
+                    });
+                }
+                dispatch(fetchProjects(settings.projectsSearchTerm)).then(projects => {
                     dispatch(projectsSet(projects));
                     return projects.filter(project => !projectIds || projectIds.indexOf(project.id) >= 0).map(project => {
                         return Promise.all([
