@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
 import {Provider} from 'react-redux';
 
 import App from './components/App';
@@ -9,8 +9,9 @@ import { GITLAB_URL, GITLAB_TOKEN, GITLAB_MEMBERS_SEARCH_TERMS, GITLAB_PROJECTS_
 import mainReducer from './reducers';
 
 
-const createStoreWithMiddleware = applyMiddleware(
-    createGitlabApiMiddleware(GITLAB_URL, GITLAB_TOKEN),
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const createStoreWithMiddleware = composeEnhancers(
+  applyMiddleware(createGitlabApiMiddleware(GITLAB_URL, GITLAB_TOKEN))
 )(createStore);
 const store = createStoreWithMiddleware(mainReducer, {
   settings: {
