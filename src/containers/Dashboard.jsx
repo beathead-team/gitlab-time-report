@@ -156,6 +156,11 @@ class Dashboard extends React.Component {
                                 onChange={this.props.filterDateRangeMax}
                             />
                         </div>
+                        <div className="col-md-1">
+                            <button type="button"
+                                    className="btn reset-button"
+                                    onClick={this.props.resetDateRange}>Reset date range</button>
+                        </div>
                     </div>
                 </div>
                 <div className="members">
@@ -263,6 +268,9 @@ export default connect(
             filterDateRangeMax: (dateRangeMax) => {
                 dispatch(setFilters({dateRangeMax: dateRangeMax.format('L')}));
             },
+            resetDateRange: () => {
+                dispatch(setFilters({dateRangeMin: null, dateRangeMax: null}));
+            }
         }
     },
 )(Dashboard);
