@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import { createStore, applyMiddleware, compose } from 'redux';
 import {Provider} from 'react-redux';
 
+import 'react-bootstrap-table/dist/react-bootstrap-table.min.css';
+
 import App from './components/App';
 import { createGitlabApiMiddleware } from './middlewares/gitlabApi';
 import { GITLAB_URL, GITLAB_TOKEN, GITLAB_MEMBERS_SEARCH_TERMS, GITLAB_PROJECTS_SEARCH_TERM } from './config';
