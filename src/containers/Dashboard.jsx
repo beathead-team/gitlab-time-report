@@ -156,10 +156,18 @@ class Dashboard extends React.Component {
                                 onChange={this.props.filterDateRangeMax}
                             />
                         </div>
-                        <div className="col-md-1">
+                        <div className="col-md-2">
                             <button type="button"
                                     className="btn reset-button"
                                     onClick={this.props.resetDateRange}>Reset date range</button>
+                        </div>
+                        <div className="col-md-6">
+                            <label className="checkbox-inline spent-time-filter">
+                                <input type="checkbox"
+                                       defaultChecked={this.props.filters.isSpentTimeRequired}
+                                       onChange={this.props.filterIsSpentTimeRequired}/>
+                                Filter issues with an empty spent time
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -267,6 +275,9 @@ export default connect(
             },
             filterDateRangeMax: (dateRangeMax) => {
                 dispatch(setFilters({dateRangeMax: dateRangeMax.format('L')}));
+            },
+            filterIsSpentTimeRequired: (event) => {
+                dispatch(setFilters({isSpentTimeRequired: event.target.checked}));
             },
             resetDateRange: () => {
                 dispatch(setFilters({dateRangeMin: null, dateRangeMax: null}));

@@ -47,6 +47,14 @@ export const filterIssues = (issues, filters, issuesSpentTime) => {
             ) {
                 return false;
             }
+            if (filters.isSpentTimeRequired &&
+                (!issuesSpentTime ||
+                    !issuesSpentTime[issue.project_id] ||
+                    !issuesSpentTime[issue.project_id][issue.id] ||
+                    !issuesSpentTime[issue.project_id][issue.id].length)
+            ) {
+                return false;
+            }
         }
         return true;
     });
