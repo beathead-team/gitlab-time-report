@@ -129,7 +129,7 @@ class Dashboard extends React.Component {
                     />
                 </div>
                 <div className="members">
-                    <MemberTable numberWidth="50"
+                    <MemberTable numberWidth="48"
                                  members={this.props.members}
                                  issues={this.props.issues}
                                  issuesSpentTime={this.props.issuesSpentTime}
