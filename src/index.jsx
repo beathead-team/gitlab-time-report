@@ -4,7 +4,9 @@ import ReactDOM from 'react-dom';
 import {createStore, applyMiddleware, compose} from 'redux';
 import {Provider} from 'react-redux';
 
+// Styles import
 import 'react-bootstrap-table/dist/react-bootstrap-table.min.css';
+import 'react-datepicker/dist/react-datepicker.css';
 
 import App from './components/App';
 import {createGitlabApiMiddleware} from './middlewares/gitlabApi';

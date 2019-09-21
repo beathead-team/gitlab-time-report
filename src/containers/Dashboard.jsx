@@ -1,11 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import moment from 'moment';
+import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 // Be sure to include styles at some point, probably during your bootstrapping
 import 'react-select/dist/react-select.css';
 
-import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours } from '../utils';
+import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours, createDateRange } from '../utils';
 import { fetchIssues, issuesSet } from '../actions/issue';
 import { fetchMembers, membersAdd, membersInit, membersSet } from '../actions/member';
 import { fetchMilestones, milestonesSet } from '../actions/milestone';
@@ -86,6 +88,18 @@ class Dashboard extends React.Component {
         return this.getEdgeDate('due_date', Math.max);
     }
 
+    getDateRangeMin() {
+        return this.props.filters.dateRangeMin ? moment(this.props.filters.dateRangeMin) : null;
+    }
+
+    getDateRangeMax() {
+        return this.props.filters.dateRangeMax ? moment(this.props.filters.dateRangeMax) : null;
+    }
+
+    getDateRange() {
+        return createDateRange(this.getDateRangeMin(), this.getDateRangeMax());
+    }
+
     render() {
         let now = Date.now(),
             minTime = this.getStartDate(),
@@ -127,12 +141,29 @@ class Dashboard extends React.Component {
                       multi={true}
                       onChange={this.props.filterMembers}
                     />
+                    <div className="row">
+                        <div className="col-md-2">
+                            Start date (inclusive)
+                            <DatePicker
+                                selected={this.getDateRangeMin()}
+                                onChange={this.props.filterDateRangeMin}
+                            />
+                        </div>
+                        <div className="col-md-2">
+                            End date (inclusive)
+                            <DatePicker
+                                selected={this.getDateRangeMax()}
+                                onChange={this.props.filterDateRangeMax}
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div className="members">
                     <MemberTable numberWidth="45"
                                  members={this.props.members}
                                  issues={this.props.issues}
                                  issuesSpentTime={this.props.issuesSpentTime}
+                                 dateRange={this.getDateRange()}
                                  minTime={minTime}
                                  maxTime={maxTime}/>
                 </div>
@@ -154,7 +185,7 @@ const getFilters = items => {
 export default connect(
     (state) => {
         let issuesSpentTime = state.issuesSpentTime,
-            issues = filterIssues(flattenObjects(state.issues), state.filters),
+            issues = filterIssues(flattenObjects(state.issues), state.filters, issuesSpentTime),
             allMembers = state.members,
             members = allMembers.filter(member => !state.filters || !(state.filters.members || []).length || state.filters.members.indexOf(member.id) >= 0);
         return {
@@ -166,7 +197,11 @@ export default connect(
             milestones: state.milestones,
             projects: state.projects,
             filters: state.filters,
-            spentHours: sumSpentHours(issues, issuesSpentTime),
+            spentHours: sumSpentHours(
+                issues,
+                issuesSpentTime,
+                createDateRange(state.filters.dateRangeMin, state.filters.dateRangeMax)
+            ),
             estimateHours: sumEstimateHours(issues),
             totalCapacity: members.map(member => member.capacity).reduce((a, b) => a + b, 0)
         }
@@ -221,7 +256,13 @@ export default connect(
             },
             filterMembers: (members) => {
                 dispatch(setFilters(getFilters({members})));
-            }
+            },
+            filterDateRangeMin: (dateRangeMin) => {
+                dispatch(setFilters({dateRangeMin: dateRangeMin.format('L')}));
+            },
+            filterDateRangeMax: (dateRangeMax) => {
+                dispatch(setFilters({dateRangeMax: dateRangeMax.format('L')}));
+            },
         }
     },
 )(Dashboard);

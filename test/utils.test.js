@@ -1,5 +1,5 @@
 import { assert, expect, describe, it } from './common';
-import { calcDateRange, sumSpentHours } from '../src/utils';
+import { calcDateRange, createDateRange, isDateWithinRange, sumSpentHours } from '../src/utils';
 
 describe('utils', function() {
     const issues = [
@@ -82,5 +82,22 @@ describe('utils', function() {
             min_date: new Date(2019, 4, 1),
             max_date: new Date(2019, 11, 13)
         })
+    });
+    it('it should create date range from timestamp', function() {
+        expect(createDateRange(1000, 1000)).to.deep.equalInAnyOrder({
+            min_date: new Date(1000),
+            max_date: new Date(1000)
+        });
+    });
+    it('it should create date range from date string', function() {
+        expect(createDateRange('2019-11-15', '2019-11-25')).to.deep.equalInAnyOrder({
+            min_date: new Date('2019-11-15'),
+            max_date: new Date('2019-11-25')
+        });
+    });
+    it('it should determine whether date is within date range or not', function() {
+        assert.isTrue(isDateWithinRange('2019-11-15', createDateRange('2019-11-01', '2019-11-30')))
+        assert.isFalse(isDateWithinRange('2019-10-15', createDateRange('2019-11-01', '2019-11-30')))
+        assert.isFalse(isDateWithinRange('2019-12-15', createDateRange('2019-11-01', '2019-11-30')))
     });
 });

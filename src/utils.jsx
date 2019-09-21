@@ -5,7 +5,30 @@ export const getHours = (seconds) => seconds / 3600;
 
 export const formatHours = (hours, empty='-') => hours !== undefined ? hours.toFixed(1) : empty;
 
-export const filterIssues = (issues, filters) => {
+export const createDateRange = (minDate, maxDate) => ({
+    min_date: minDate ? new Date(minDate) : null,
+    max_date: maxDate ? new Date(maxDate) : null
+});
+
+export const isDateWithinRange = (anyDate, dateRange) => {
+    const {min_date: min, max_date: max} = dateRange;
+    const date = new Date(anyDate);
+    if (min && max) {
+        return date >= min && date <= max;
+    } else if (min) {
+        return date >= min;
+    } else if (max) {
+        return date <= max;
+    }
+    return false;
+};
+
+export const isIssueInDateRange = (issue, dateRange, issueSpentTime) =>
+    isDateWithinRange(issue.created_at, dateRange) ||
+    isDateWithinRange(issue.updated_at, dateRange) ||
+    issueSpentTime.some(x => isDateWithinRange(x.created_at, dateRange));
+
+export const filterIssues = (issues, filters, issuesSpentTime) => {
     return issues.filter((issue) => {
         if (filters) {
             if ((filters.members || []).length && (filters.members.indexOf((issue.assignee || {id: null}).id) < 0)) {
@@ -15,6 +38,13 @@ export const filterIssues = (issues, filters) => {
                 return false;
             }
             if ((filters.milestones || []).length && (!issue.milestone || filters.milestones.indexOf(issue.milestone.id) < 0)) {
+                return false;
+            }
+            if ((filters.dateRangeMin || filters.dateRangeMax) && !isIssueInDateRange(
+                issue,
+                createDateRange(filters.dateRangeMin, filters.dateRangeMax),
+                (issuesSpentTime && issuesSpentTime[issue.project_id] && issuesSpentTime[issue.project_id][issue.id]) || [])
+            ) {
                 return false;
             }
         }
@@ -62,8 +92,5 @@ export const calcDateRange = (issues, issuesSpentTime) => {
         maxDate = Math.max(minDate, ...dates);
     });
 
-    return {
-        min_date: new Date(minDate),
-        max_date: new Date(maxDate)
-    };
+    return createDateRange(minDate, maxDate);
 };

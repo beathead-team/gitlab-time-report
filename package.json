@@ -19,8 +19,10 @@
     "npm": ">=3.3 <4"
   },
   "dependencies": {
+    "moment": "^2.24.0",
     "react": "15.6.1",
     "react-bootstrap-table": "3.5.1",
+    "react-datepicker": "^0.60.2",
     "react-dom": "15.6.1",
     "react-redux": "5.0.3",
     "react-select": "1.0.0-rc.3",
