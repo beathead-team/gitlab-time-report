@@ -14,6 +14,8 @@ import { setFilters } from '../actions/filters';
 import TitledValue from '../components/TitledValue';
 import ProgressBar from '../components/ProgressBar';
 import MemberTable from './MemberTable';
+import { fetchIssueNotes, issueNotesSet } from '../actions/issueNotes';
+import { parseIssueSpentTime } from '../actions/issueSpentTime';
 
 
 class Dashboard extends React.Component {
@@ -127,7 +129,12 @@ class Dashboard extends React.Component {
                     />
                 </div>
                 <div className="members">
-                    <MemberTable numberWidth="50" members={this.props.members} issues={this.props.issues} minTime={minTime} maxTime={maxTime}/>
+                    <MemberTable numberWidth="50"
+                                 members={this.props.members}
+                                 issues={this.props.issues}
+                                 issuesSpentTime={this.props.issuesSpentTime}
+                                 minTime={minTime}
+                                 maxTime={maxTime}/>
                 </div>
             </div>
         );
@@ -146,18 +153,20 @@ const getFilters = items => {
 
 export default connect(
     (state) => {
-        let issues = filterIssues(flattenObjects(state.issues), state.filters),
+        let issuesSpentTime = state.issuesSpentTime,
+            issues = filterIssues(flattenObjects(state.issues), state.filters),
             allMembers = state.members,
             members = allMembers.filter(member => !state.filters || !(state.filters.members || []).length || state.filters.members.indexOf(member.id) >= 0);
         return {
             issues,
+            issuesSpentTime,
             allMembers,
             members,
             settings: state.settings,
             milestones: state.milestones,
             projects: state.projects,
             filters: state.filters,
-            spentHours: sumSpentHours(issues),
+            spentHours: sumSpentHours(issues, issuesSpentTime),
             estimateHours: sumEstimateHours(issues),
             totalCapacity: members.map(member => member.capacity).reduce((a, b) => a + b, 0)
         }
@@ -183,6 +192,13 @@ export default connect(
                         return Promise.all([
                             dispatch(fetchIssues(project.id)).then(issues => {
                                 dispatch(issuesSet(project.id, issues));
+                                // dispatch sequentially to avoid GitLab API Rate Limit error
+                                const issueNotesDispatches = issues.map(issue => () =>
+                                    dispatch(fetchIssueNotes(project.id, issue.iid)).then(notes => {
+                                        dispatch(issueNotesSet(issue.id, notes));
+                                        dispatch(parseIssueSpentTime(project.id, issue.id, notes));
+                                    }));
+                                return issueNotesDispatches.reduce((p, x) => p.then(x), Promise.resolve());
                             }),
                             dispatch(fetchMilestones(project.id)).then(milestones => {
                                 dispatch(milestonesSet(project.id, milestones));

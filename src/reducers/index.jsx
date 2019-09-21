@@ -6,10 +6,13 @@ import filters from './filters';
 import milestones from './milestones';
 import projects from './projects';
 import settings from './settings';
-
+import issueNotes from './issuesNotes';
+import issuesSpentTime from "./issuesSpentTime";
 
 let mainReducer = combineReducers({
     issues,
+    issueNotes,
+    issuesSpentTime,
     members,
     filters,
     milestones,
