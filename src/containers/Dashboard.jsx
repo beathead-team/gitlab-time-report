@@ -1,11 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import moment from 'moment';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
-// Be sure to include styles at some point, probably during your bootstrapping
-import 'react-select/dist/react-select.css';
 
 import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours, createDateRange } from '../utils';
 import { fetchIssues, issuesSet } from '../actions/issue';
