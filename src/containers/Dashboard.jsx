@@ -140,14 +140,14 @@ class Dashboard extends React.Component {
                     />
                     <div className="row">
                         <div className="col-md-2">
-                            Start date (inclusive)
+                            Start date
                             <DatePicker
                                 selected={this.getDateRangeMin()}
                                 onChange={this.props.filterDateRangeMin}
                             />
                         </div>
                         <div className="col-md-2">
-                            End date (inclusive)
+                            End date
                             <DatePicker
                                 selected={this.getDateRangeMax()}
                                 onChange={this.props.filterDateRangeMax}

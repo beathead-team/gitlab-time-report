@@ -23,10 +23,16 @@ export const isDateWithinRange = (anyDate, dateRange) => {
     return false;
 };
 
+export const isDateRangeEmpty = (dateRange) => !dateRange || (!dateRange.min_date && !dateRange.max_date);
+
+export const isIssueSpentTimeInDateRange = (issueSpentTime, dateRange) =>
+    isDateRangeEmpty(dateRange) || issueSpentTime.some(x => isDateWithinRange(x.created_at, dateRange));
+
 export const isIssueInDateRange = (issue, dateRange, issueSpentTime) =>
+    isDateRangeEmpty(dateRange) ||
     isDateWithinRange(issue.created_at, dateRange) ||
     isDateWithinRange(issue.updated_at, dateRange) ||
-    issueSpentTime.some(x => isDateWithinRange(x.created_at, dateRange));
+    isIssueSpentTimeInDateRange(issueSpentTime, dateRange);
 
 export const filterIssues = (issues, filters, issuesSpentTime) => {
     return issues.filter((issue) => {
@@ -40,9 +46,10 @@ export const filterIssues = (issues, filters, issuesSpentTime) => {
             if ((filters.milestones || []).length && (!issue.milestone || filters.milestones.indexOf(issue.milestone.id) < 0)) {
                 return false;
             }
+            const dateRange = createDateRange(filters.dateRangeMin, filters.dateRangeMax);
             if ((filters.dateRangeMin || filters.dateRangeMax) && !isIssueInDateRange(
                 issue,
-                createDateRange(filters.dateRangeMin, filters.dateRangeMax),
+                dateRange,
                 (issuesSpentTime && issuesSpentTime[issue.project_id] && issuesSpentTime[issue.project_id][issue.id]) || [])
             ) {
                 return false;
@@ -51,7 +58,8 @@ export const filterIssues = (issues, filters, issuesSpentTime) => {
                 (!issuesSpentTime ||
                     !issuesSpentTime[issue.project_id] ||
                     !issuesSpentTime[issue.project_id][issue.id] ||
-                    !issuesSpentTime[issue.project_id][issue.id].length)
+                    !issuesSpentTime[issue.project_id][issue.id].length ||
+                    !isIssueSpentTimeInDateRange(issuesSpentTime[issue.project_id][issue.id], dateRange))
             ) {
                 return false;
             }
