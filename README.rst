@@ -34,6 +34,7 @@ Setup development environment
         GITLAB_TOKEN="personal_access_token" \
         GITLAB_PROJECTS_SEARCH_TERM="specialprojects" \
         GITLAB_MEMBERS_SEARCH_TERMS="user1;user2;user3" \
+        WEBPACK_BASIC_AUTH="user=pas" \
         npm start
 
 
@@ -43,5 +44,6 @@ Setup development environment
    - ``GITLAB_MEMBERS_SEARCH_TERMS`` allows to filter initial set of members (semicolon separated)
    - ``LISTEN_HOST`` is ``localhost`` by default
    - ``LISTEN_PORT`` is ``3030`` by default
+   - ``WEBPACK_BASIC_AUTH`` allows to require HTTP Basic auth when serving via webpack-dev-server
 
 #. Open http://localhost:3030/ in browser (for default ``LISTEN_HOST`` and ``LISTEN_PORT``)
