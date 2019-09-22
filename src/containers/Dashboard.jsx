@@ -1,19 +1,20 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import moment from 'moment';
+import DatePicker from 'react-datepicker';
 import Select from 'react-select';
-// Be sure to include styles at some point, probably during your bootstrapping
-import 'react-select/dist/react-select.css';
 
-import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours } from '../utils';
+import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours, createDateRange } from '../utils';
 import { fetchIssues, issuesSet } from '../actions/issue';
-import { fetchMembers, membersSet } from '../actions/member';
+import { fetchMembers, membersAdd, membersInit, membersSet } from '../actions/member';
 import { fetchMilestones, milestonesSet } from '../actions/milestone';
 import { fetchProjects, projectsSet } from '../actions/project';
 import { setFilters } from '../actions/filters';
 import TitledValue from '../components/TitledValue';
 import ProgressBar from '../components/ProgressBar';
 import MemberTable from './MemberTable';
+import { fetchIssueNotes, issueNotesSet } from '../actions/issueNotes';
+import { parseIssueSpentTime } from '../actions/issueSpentTime';
 
 
 class Dashboard extends React.Component {
@@ -39,7 +40,7 @@ class Dashboard extends React.Component {
         }, () => {
             this.props.refresh(projects, () => this.setState({
                 refreshing: false
-            }));
+            }), this.props.settings);
         });
     }
 
@@ -84,6 +85,18 @@ class Dashboard extends React.Component {
         return this.getEdgeDate('due_date', Math.max);
     }
 
+    getDateRangeMin() {
+        return this.props.filters.dateRangeMin ? moment(this.props.filters.dateRangeMin) : null;
+    }
+
+    getDateRangeMax() {
+        return this.props.filters.dateRangeMax ? moment(this.props.filters.dateRangeMax) : null;
+    }
+
+    getDateRange() {
+        return createDateRange(this.getDateRangeMin(), this.getDateRangeMax());
+    }
+
     render() {
         let now = Date.now(),
             minTime = this.getStartDate(),
@@ -125,9 +138,44 @@ class Dashboard extends React.Component {
                       multi={true}
                       onChange={this.props.filterMembers}
                     />
+                    <div className="row">
+                        <div className="col-md-2">
+                            Start date
+                            <DatePicker
+                                selected={this.getDateRangeMin()}
+                                onChange={this.props.filterDateRangeMin}
+                            />
+                        </div>
+                        <div className="col-md-2">
+                            End date
+                            <DatePicker
+                                selected={this.getDateRangeMax()}
+                                onChange={this.props.filterDateRangeMax}
+                            />
+                        </div>
+                        <div className="col-md-2">
+                            <button type="button"
+                                    className="btn reset-button"
+                                    onClick={this.props.resetDateRange}>Reset date range</button>
+                        </div>
+                        <div className="col-md-6">
+                            <label className="checkbox-inline spent-time-filter">
+                                <input type="checkbox"
+                                       defaultChecked={this.props.filters.isSpentTimeRequired}
+                                       onChange={this.props.filterIsSpentTimeRequired}/>
+                                Filter issues with an empty spent time
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div className="members">
-                    <MemberTable numberWidth="50" members={this.props.members} issues={this.props.issues} minTime={minTime} maxTime={maxTime}/>
+                    <MemberTable numberWidth="45"
+                                 members={this.props.members}
+                                 issues={this.props.issues}
+                                 issuesSpentTime={this.props.issuesSpentTime}
+                                 dateRange={this.getDateRange()}
+                                 minTime={minTime}
+                                 maxTime={maxTime}/>
                 </div>
             </div>
         );
@@ -146,33 +194,56 @@ const getFilters = items => {
 
 export default connect(
     (state) => {
-        let issues = filterIssues(flattenObjects(state.issues), state.filters),
+        let issuesSpentTime = state.issuesSpentTime,
+            issues = filterIssues(flattenObjects(state.issues), state.filters, issuesSpentTime),
             allMembers = state.members,
             members = allMembers.filter(member => !state.filters || !(state.filters.members || []).length || state.filters.members.indexOf(member.id) >= 0);
         return {
             issues,
+            issuesSpentTime,
             allMembers,
             members,
+            settings: state.settings,
             milestones: state.milestones,
             projects: state.projects,
             filters: state.filters,
-            spentHours: sumSpentHours(issues),
+            spentHours: sumSpentHours(
+                issues,
+                issuesSpentTime,
+                createDateRange(state.filters.dateRangeMin, state.filters.dateRangeMax)
+            ),
             estimateHours: sumEstimateHours(issues),
             totalCapacity: members.map(member => member.capacity).reduce((a, b) => a + b, 0)
         }
     },
     (dispatch) => {
         return {
-            refresh: (projectIds, callback) => {
-                dispatch(fetchMembers()).then(members => {
-                    dispatch(membersSet(members));
-                });
-                dispatch(fetchProjects()).then(projects => {
+            refresh: (projectIds, callback, settings) => {
+                if (settings.membersSearchTerms) {
+                    settings.membersSearchTerms.forEach(searchTerm => {
+                        dispatch(membersInit());
+                        dispatch(fetchMembers(searchTerm)).then(members => {
+                            dispatch(membersAdd(members));
+                        });
+                    })
+                } else {
+                    dispatch(fetchMembers()).then(members => {
+                        dispatch(membersSet(members));
+                    });
+                }
+                dispatch(fetchProjects(settings.projectsSearchTerm)).then(projects => {
                     dispatch(projectsSet(projects));
                     return projects.filter(project => !projectIds || projectIds.indexOf(project.id) >= 0).map(project => {
                         return Promise.all([
                             dispatch(fetchIssues(project.id)).then(issues => {
                                 dispatch(issuesSet(project.id, issues));
+                                // dispatch sequentially to avoid GitLab API Rate Limit error
+                                const issueNotesDispatches = issues.map(issue => () =>
+                                    dispatch(fetchIssueNotes(project.id, issue.iid)).then(notes => {
+                                        dispatch(issueNotesSet(issue.id, notes));
+                                        dispatch(parseIssueSpentTime(project.id, issue.id, notes));
+                                    }));
+                                return issueNotesDispatches.reduce((p, x) => p.then(x), Promise.resolve());
                             }),
                             dispatch(fetchMilestones(project.id)).then(milestones => {
                                 dispatch(milestonesSet(project.id, milestones));
@@ -195,6 +266,18 @@ export default connect(
             },
             filterMembers: (members) => {
                 dispatch(setFilters(getFilters({members})));
+            },
+            filterDateRangeMin: (dateRangeMin) => {
+                dispatch(setFilters({dateRangeMin: dateRangeMin.format('L')}));
+            },
+            filterDateRangeMax: (dateRangeMax) => {
+                dispatch(setFilters({dateRangeMax: dateRangeMax.format('L')}));
+            },
+            filterIsSpentTimeRequired: (event) => {
+                dispatch(setFilters({isSpentTimeRequired: event.target.checked}));
+            },
+            resetDateRange: () => {
+                dispatch(setFilters({dateRangeMin: null, dateRangeMax: null}));
             }
         }
     },

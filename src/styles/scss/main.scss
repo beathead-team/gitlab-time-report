@@ -85,6 +85,7 @@
       width: 30px;
       height: 30px;
       margin-left: 16px;
+      margin-top: 16px;
       cursor: pointer;
       border: #999999 1px solid;
       box-sizing: border-box;
@@ -107,6 +108,13 @@
     }
   }
   .toolbar {
+    .reset-button {
+      margin-top: 15px;
+      margin-left: 5px;
+    }
+    .spent-time-filter {
+      margin-top: 18px;
+    }
   }
   .members {
     .table {
