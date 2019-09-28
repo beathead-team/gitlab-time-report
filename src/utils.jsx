@@ -5,6 +5,12 @@ export const getHours = (seconds) => seconds / 3600;
 
 export const formatHours = (hours, empty='-') => hours !== undefined ? hours.toFixed(1) : empty;
 
+export const formatLoadingProgress = (loadingProgress) => {
+    const toLoadCount = loadingProgress.itemsCountToLoad || 0;
+    const loadedCount = loadingProgress.loadedItemsCount || 0;
+    return `${toLoadCount}|${loadedCount}`;
+};
+
 export const createDateRange = (minDate, maxDate) => ({
     min_date: minDate ? new Date(minDate) : null,
     max_date: maxDate ? new Date(maxDate) : null

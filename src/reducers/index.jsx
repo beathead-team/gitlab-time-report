@@ -7,7 +7,8 @@ import milestones from './milestones';
 import projects from './projects';
 import settings from './settings';
 import issueNotes from './issuesNotes';
-import issuesSpentTime from "./issuesSpentTime";
+import issuesSpentTime from './issuesSpentTime';
+import loadingProgress from './loadingProgress';
 
 let mainReducer = combineReducers({
     issues,
@@ -18,6 +19,7 @@ let mainReducer = combineReducers({
     milestones,
     projects,
     settings,
+    loadingProgress,
 });
 
 export default mainReducer;

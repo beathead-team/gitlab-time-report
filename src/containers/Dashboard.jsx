@@ -4,7 +4,15 @@ import moment from 'moment';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
 
-import { filterIssues, sumSpentHours, sumEstimateHours, flattenObjects, formatHours, createDateRange } from '../utils';
+import {
+    filterIssues,
+    sumSpentHours,
+    sumEstimateHours,
+    flattenObjects,
+    formatHours,
+    createDateRange,
+    formatLoadingProgress
+} from '../utils';
 import { fetchIssues, issuesSet } from '../actions/issue';
 import { fetchMembers, membersAdd, membersInit, membersSet } from '../actions/member';
 import { fetchMilestones, milestonesSet } from '../actions/milestone';
@@ -15,6 +23,7 @@ import ProgressBar from '../components/ProgressBar';
 import MemberTable from './MemberTable';
 import { fetchIssueNotes, issueNotesSet } from '../actions/issueNotes';
 import { parseIssueSpentTime } from '../actions/issueSpentTime';
+import { addLoadingProgress, extendLoadingProgressTarget, setLoadingProgressTarget } from "../actions/loadingProgress";
 
 
 class Dashboard extends React.Component {
@@ -31,7 +40,11 @@ class Dashboard extends React.Component {
     }
 
     shouldComponentUpdate(np, ns) {
-        return this.state.refreshing != ns.refreshing || !ns.refreshing;
+        return this.state.refreshing != ns.refreshing || !ns.refreshing
+            // refresh only when progress changed
+            || (!!this.props.loadingProgress
+                && !!np.loadingProgress
+                && (this.props.loadingProgress.loadedItemsCount !== np.loadingProgress.loadedItemsCount));
     }
 
     refresh(projects) { // (this.props.filters || {}).projects // To fetch only filtered projects
@@ -112,8 +125,9 @@ class Dashboard extends React.Component {
                         {height: 10, current: this.props.estimateHours, max: this.props.totalCapacity, className: 'progress-value-second'},
                         {height: 2, current: now - minTime, max: maxTime - minTime, className: 'progress-value-third'},
                     ]} className="big-progress"/>
-                    <div className="refresh" onClick={() => this.refresh()}>
+                    <div className="refresh" onClick={() => !this.state.refreshing && this.refresh()}>
                         <img className={['refresh-icon', this.state.refreshing ? 'refreshing' : ''].join(' ')} src="/resources/image/refresh.svg"/>
+                        {this.props.loadingProgress.itemsCountToLoad && formatLoadingProgress(this.props.loadingProgress)}
                     </div>
                 </div>
                 <div className="toolbar">
@@ -121,6 +135,7 @@ class Dashboard extends React.Component {
                     <Select
                       value={this.props.filters.projects}
                       options={this.getProjectOptions()}
+                      disabled={this.state.refreshing}
                       multi={true}
                       onChange={this.props.filterProjects}
                     />
@@ -128,6 +143,7 @@ class Dashboard extends React.Component {
                     <Select
                       value={this.props.filters.milestones}
                       options={this.getMilestoneOptions()}
+                      disabled={this.state.refreshing}
                       multi={true}
                       onChange={this.props.filterMilestones}
                     />
@@ -135,6 +151,7 @@ class Dashboard extends React.Component {
                     <Select
                       value={this.props.filters.members}
                       options={this.getMemberOptions()}
+                      disabled={this.state.refreshing}
                       multi={true}
                       onChange={this.props.filterMembers}
                     />
@@ -143,6 +160,7 @@ class Dashboard extends React.Component {
                             Start date
                             <DatePicker
                                 selected={this.getDateRangeMin()}
+                                disabled={this.state.refreshing}
                                 onChange={this.props.filterDateRangeMin}
                             />
                         </div>
@@ -150,17 +168,20 @@ class Dashboard extends React.Component {
                             End date
                             <DatePicker
                                 selected={this.getDateRangeMax()}
+                                disabled={this.state.refreshing}
                                 onChange={this.props.filterDateRangeMax}
                             />
                         </div>
                         <div className="col-md-2">
                             <button type="button"
                                     className="btn reset-button"
+                                    disabled={this.state.refreshing}
                                     onClick={this.props.resetDateRange}>Reset date range</button>
                         </div>
                         <div className="col-md-6">
                             <label className="checkbox-inline spent-time-filter">
                                 <input type="checkbox"
+                                       disabled={this.state.refreshing}
                                        defaultChecked={this.props.filters.isSpentTimeRequired}
                                        onChange={this.props.filterIsSpentTimeRequired}/>
                                 Filter issues with an empty spent time
@@ -176,7 +197,7 @@ class Dashboard extends React.Component {
                                  dateRange={this.getDateRange()}
                                  minTime={minTime}
                                  maxTime={maxTime}/>
-                </div>
+                </div>}
             </div>
         );
     }
@@ -207,6 +228,7 @@ export default connect(
             milestones: state.milestones,
             projects: state.projects,
             filters: state.filters,
+            loadingProgress: state.loadingProgress,
             spentHours: sumSpentHours(
                 issues,
                 issuesSpentTime,
@@ -232,20 +254,25 @@ export default connect(
                     });
                 }
                 dispatch(fetchProjects(settings.projectsSearchTerm)).then(projects => {
+                    dispatch(setLoadingProgressTarget(projects.length * 2));
                     dispatch(projectsSet(projects));
                     return projects.filter(project => !projectIds || projectIds.indexOf(project.id) >= 0).map(project => {
                         return Promise.all([
                             dispatch(fetchIssues(project.id)).then(issues => {
+                                dispatch(addLoadingProgress(1));
+                                dispatch(extendLoadingProgressTarget(issues.length));
                                 dispatch(issuesSet(project.id, issues));
                                 // dispatch sequentially to avoid GitLab API Rate Limit error
                                 const issueNotesDispatches = issues.map(issue => () =>
                                     dispatch(fetchIssueNotes(project.id, issue.iid)).then(notes => {
+                                        dispatch(addLoadingProgress(1));
                                         dispatch(issueNotesSet(issue.id, notes));
                                         dispatch(parseIssueSpentTime(project.id, issue.id, notes));
                                     }));
                                 return issueNotesDispatches.reduce((p, x) => p.then(x), Promise.resolve());
                             }),
                             dispatch(fetchMilestones(project.id)).then(milestones => {
+                                dispatch(addLoadingProgress(1));
                                 dispatch(milestonesSet(project.id, milestones));
                             }),
                         ]);
