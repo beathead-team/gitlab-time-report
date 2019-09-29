@@ -12,31 +12,38 @@ import 'react-datepicker/dist/react-datepicker.css';
 import App from './components/App';
 import {createGitlabApiMiddleware} from './middlewares/gitlabApi';
 import createSagaMiddleware from 'redux-saga';
-import {GITLAB_URL, GITLAB_TOKEN, GITLAB_MEMBERS_SEARCH_TERMS, GITLAB_PROJECTS_SEARCH_TERM} from './config';
+import {fetchConfig} from './config';
 import mainReducer from './reducers';
 import {mainSaga} from './sagas';
 
+fetchConfig().then(config => {
+    const {gitlab} = config;
 
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-const sagaMiddleware = createSagaMiddleware();
-const createStoreWithMiddleware = composeEnhancers(
-    applyMiddleware(
-        sagaMiddleware,
-        createGitlabApiMiddleware(GITLAB_URL, GITLAB_TOKEN)
-    )
-)(createStore);
-const store = createStoreWithMiddleware(mainReducer, {
-    settings: {
-        membersSearchTerms: GITLAB_MEMBERS_SEARCH_TERMS ? GITLAB_MEMBERS_SEARCH_TERMS.split(';') : null,
-        projectsSearchTerm: GITLAB_PROJECTS_SEARCH_TERM || null,
+    if (!gitlab || !gitlab.url || !gitlab.token) {
+        throw new Error('gitlab config is invalid, url and token are mandatory fields!');
     }
+
+    const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+    const sagaMiddleware = createSagaMiddleware();
+    const createStoreWithMiddleware = composeEnhancers(
+        applyMiddleware(
+            sagaMiddleware,
+            createGitlabApiMiddleware(gitlab.url, gitlab.token)
+        )
+    )(createStore);
+    const store = createStoreWithMiddleware(mainReducer, {
+        settings: {
+            membersSearchTerms: gitlab.membersSearchTerms ? gitlab.membersSearchTerms.split(';') : null,
+            projectsSearchTerm: gitlab.projectSearchTerms || null,
+        }
+    });
+
+    sagaMiddleware.run(mainSaga);
+
+    ReactDOM.render(
+        <Provider store={store}>
+            <App/>
+        </Provider>,
+        document.getElementById('app')
+    );
 });
-
-sagaMiddleware.run(mainSaga);
-
-ReactDOM.render(
-    <Provider store={store}>
-        <App/>
-    </Provider>,
-    document.getElementById('app')
-);

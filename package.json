@@ -37,7 +37,6 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.26.0",
-    "basic-auth": "^2.0.1",
     "chai": "^4.2.0",
     "css-loader": "^0.28.0",
     "deep-equal-in-any-order": "^1.0.21",
@@ -45,15 +44,17 @@
     "gulp-sass": "^4.0.2",
     "mocha": "^6.2.0",
     "style-loader": "^0.16.1",
-    "webpack": "^3.6.0",
-    "webpack-dev-server": "^2.8.2"
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1",
+    "webpack-merge": "^4.2.2"
   },
   "scripts": {
-    "clean": "rm -rf ./lib",
-    "build": "webpack && gulp sass && cp -R ./src/resources ./lib",
-    "lib": "npm run clean && babel src -d lib",
-    "prepublish": "npm run lib",
-    "start": "webpack-dev-server",
+    "clean": "rm -rf ./public",
+    "build": "webpack --config webpack.prod.js && gulp sass && cp -R ./src/resources ./public && cp ./src/index.html ./public",
+    "firebase-deploy": "firebase deploy --only functions,hosting",
+    "firebase-serve": "firebase functions:config:get > ./functions/.runtimeconfig.json && firebase serve --only functions,hosting",
+    "start": "webpack-dev-server --open --config webpack.dev.js",
     "test": "mocha test/**/*.js --require babel-register --reporter spec || exit 0"
   }
 }
