@@ -41,3 +41,7 @@ jspm_packages
 
 # Built css files
 *.css
+public
+
+# Firebase
+.firebaserc

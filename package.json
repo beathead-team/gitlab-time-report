@@ -37,7 +37,6 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.26.0",
-    "basic-auth": "^2.0.1",
     "chai": "^4.2.0",
     "css-loader": "^0.28.0",
     "deep-equal-in-any-order": "^1.0.21",
@@ -51,10 +50,10 @@
     "webpack-merge": "^4.2.2"
   },
   "scripts": {
-    "clean": "rm -rf ./lib",
-    "build": "webpack --config webpack.prod.js && gulp sass && cp -R ./src/resources ./lib",
-    "lib": "npm run clean && babel src -d lib",
-    "prepublish": "npm run lib",
+    "clean": "rm -rf ./public",
+    "build": "webpack --config webpack.prod.js && gulp sass && cp -R ./src/resources ./public && cp ./src/index.html ./public",
+    "firebase-deploy": "firebase deploy --only functions,hosting",
+    "firebase-serve": "firebase functions:config:get > ./functions/.runtimeconfig.json && firebase serve --only functions,hosting",
     "start": "webpack-dev-server --open --config webpack.dev.js",
     "test": "mocha test/**/*.js --require babel-register --reporter spec || exit 0"
   }

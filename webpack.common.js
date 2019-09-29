@@ -1,19 +1,10 @@
 const webpack = require('webpack');
 
 const env = process.env;
-const
-    GITLAB_URL = env.GITLAB_URL || 'localhost',
-    GITLAB_TOKEN = env.GITLAB_TOKEN || '';
-    GITLAB_MEMBERS_SEARCH_TERMS = env.GITLAB_MEMBERS_SEARCH_TERMS || '';
-    GITLAB_PROJECTS_SEARCH_TERM = env.GITLAB_PROJECTS_SEARCH_TERM || '';
-    WEBPACK_BASIC_AUTH = env.WEBPACK_BASIC_AUTH || false;
+const CONFIG_URL = env.CONFIG_URL || 'http://localhost:5000/config';
 
 module.exports = {
     entry: './src',
-    output: {
-        path: __dirname + '/src',
-        filename: 'index.js'
-    },
     module: {
         rules: [
             {
@@ -39,10 +30,7 @@ module.exports = {
     },
     plugins: [
         new webpack.DefinePlugin({
-            __GITLAB_URL: JSON.stringify(GITLAB_URL),
-            __GITLAB_TOKEN: JSON.stringify(GITLAB_TOKEN),
-            __GITLAB_MEMBERS_SEARCH_TERMS: JSON.stringify(GITLAB_MEMBERS_SEARCH_TERMS),
-            __GITLAB_PROJECTS_SEARCH_TERM: JSON.stringify(GITLAB_PROJECTS_SEARCH_TERM),
+            __CONFIG_URL: JSON.stringify(CONFIG_URL),
         })
     ]
 };
