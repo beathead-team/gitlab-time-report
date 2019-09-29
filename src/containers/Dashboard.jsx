@@ -197,7 +197,7 @@ class Dashboard extends React.Component {
                                  dateRange={this.getDateRange()}
                                  minTime={minTime}
                                  maxTime={maxTime}/>
-                </div>}
+                </div>
             </div>
         );
     }
