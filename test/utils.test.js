@@ -1,5 +1,11 @@
 import { assert, expect, describe, it } from './common';
-import { calcDateRange, createDateRange, isDateWithinRange, sumSpentHours } from '../src/utils';
+import {
+    calcDateRange,
+    createDateRange,
+    isDateWithinRange,
+    sumSpentHours
+} from '../src/utils';
+import moment from "moment";
 
 describe('utils', function() {
     const issues = [
@@ -17,15 +23,15 @@ describe('utils', function() {
         1: {
             // spent time created_at > than updated_at from issue
             100: [
-                {hours: 2, created_at: new Date(2019, 11, 11)},
-                {hours: 2.5, created_at: new Date(2019, 11, 12)},
-                {hours: -0.5, created_at: new Date(2019, 11, 13)},
+                {hours: 2, created_at: new Date(2019, 11, 11), spent_at: new Date(2019, 11, 11)},
+                {hours: 2.5, created_at: new Date(2019, 11, 12), spent_at: new Date(2019, 11, 12)},
+                {hours: -0.5, created_at: new Date(2019, 11, 13), spent_at: new Date(2019, 11, 13)},
             ],
             // spent time created_at < than updated_at from issue
             110: [
-                {hours: 1, created_at: new Date(2019, 11, 3)},
-                {hours: 2, created_at: new Date(2019, 11, 4)},
-                {hours: 3, created_at: new Date(2019, 11, 5)}
+                {hours: 1, created_at: new Date(2019, 11, 3), spent_at: new Date(2019, 11, 3)},
+                {hours: 2, created_at: new Date(2019, 11, 4), spent_at: new Date(2019, 11, 4)},
+                {hours: 3, created_at: new Date(2019, 11, 5), spent_at: new Date(2019, 11, 5)}
             ],
             // there is no spent time for issue with id 150
         }
@@ -91,13 +97,31 @@ describe('utils', function() {
     });
     it('it should create date range from date string', function() {
         expect(createDateRange('2019-11-15', '2019-11-25')).to.deep.equalInAnyOrder({
-            min_date: new Date('2019-11-15'),
-            max_date: new Date('2019-11-25')
+            min_date: new Date(2019, 11, 15),
+            max_date: new Date(2019, 11, 25)
         });
     });
     it('it should determine whether date is within date range or not', function() {
         assert.isTrue(isDateWithinRange('2019-11-15', createDateRange('2019-11-01', '2019-11-30')))
         assert.isFalse(isDateWithinRange('2019-10-15', createDateRange('2019-11-01', '2019-11-30')))
         assert.isFalse(isDateWithinRange('2019-12-15', createDateRange('2019-11-01', '2019-11-30')))
+    });
+    it('it should determine whether date is within date range or not for border cases', function() {
+        assert.isTrue(isDateWithinRange('2019-11-01', createDateRange('2019-11-01', '2019-11-30')));
+        assert.isTrue(isDateWithinRange('2019-11-30', createDateRange('2019-11-01', '2019-11-30')));
+    });
+    it('it should sum spent hours correctly for border cases', function() {
+        console.log(createDateRange(moment('2019-10-01'), moment('2019-10-31')));
+        assert.equal(
+            sumSpentHours([
+                {project_id: 123, id: 123},
+            ], {123: { 123: [
+                {hours: 1.33, spent_at: '2019-10-28'},
+                {hours: 2, spent_at: '2019-10-29'},
+                {hours: 3.33, spent_at: '2019-10-30'},
+                {hours: 3.25, spent_at: '2019-10-31'},
+            ]}}, createDateRange(moment.utc('2019-10-01'), moment.utc('2019-10-31'))),
+            1.33 + 2 + 3.33 + 3.25
+        );
     });
 });
