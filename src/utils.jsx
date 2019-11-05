@@ -81,9 +81,9 @@ const determineHoursWithinDateRange = (issueSpentTime, dateRange) => {
     if (!dateRange) {
         return hours;
     }
-    const createdAt = new Date(issueSpentTime.created_at);
-    return ((!dateRange.min_date || createdAt >= dateRange.min_date) &&
-        (!dateRange.max_date || createdAt <= dateRange.max_date)) ? hours : 0;
+    const spentAt = new Date(issueSpentTime.spent_at);
+    return ((!dateRange.min_date || spentAt >= dateRange.min_date) &&
+        (!dateRange.max_date || spentAt <= dateRange.max_date)) ? hours : 0;
 };
 
 export const sumSpentHours = (issues, issuesSpentTime, dateRange) =>

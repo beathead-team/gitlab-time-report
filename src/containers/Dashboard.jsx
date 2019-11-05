@@ -99,11 +99,11 @@ class Dashboard extends React.Component {
     }
 
     getDateRangeMin() {
-        return this.props.filters.dateRangeMin ? moment(this.props.filters.dateRangeMin) : null;
+        return this.props.filters.dateRangeMin ? moment.utc(this.props.filters.dateRangeMin) : null;
     }
 
     getDateRangeMax() {
-        return this.props.filters.dateRangeMax ? moment(this.props.filters.dateRangeMax) : null;
+        return this.props.filters.dateRangeMax ? moment.utc(this.props.filters.dateRangeMax) : null;
     }
 
     getDateRange() {
