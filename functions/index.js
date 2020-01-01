@@ -1,6 +1,9 @@
 const functions = require('firebase-functions');
 const express = require('express');
 const basicAuth = require('basic-auth');
+const session = require('express-session');
+const auth = require('./auth');
+const config = require('./config');
 
 function checkBasicAuth(req, res, next) {
     const {name: requiredName, pass: requiredPass} = functions.config().basicauth;
@@ -35,24 +38,17 @@ function allowCors(req, res, next) {
 const app = express();
 
 app.use(allowCors);
+app.use(session({
+    secret: (functions.config().session && functions.config().session.secret) || 'default',
+    resave: false,
+    saveUninitialized: true
+}));
 
 if (functions.config().basicauth) {
     app.use(checkBasicAuth);
 }
 
-if (!functions.config().gitlab) {
-    throw new Error(`There is no gitlab config setup found, please check readme and setup one`);
-}
-
-app.get('/config', (request, response) => {
-    response.send({
-        gitlab: {
-            url: functions.config().gitlab.url,
-            token: functions.config().gitlab.token,
-            membersSearchTerms: functions.config().gitlab.members,
-            projectSearchTerms: functions.config().gitlab.projects
-        }
-    });
-});
+app.use('/auth', auth);
+app.use('/config', config);
 
 exports.app = functions.https.onRequest(app);

@@ -1,7 +1,8 @@
 const webpack = require('webpack');
 
 const env = process.env;
-const CONFIG_URL = env.CONFIG_URL || 'http://localhost:5000/config';
+const FUNCTIONS_URL = env.FUNCTIONS_URL || 'http://localhost:5000';
+const BASE_URL = env.BASE_URL || 'http://localhost:3030';
 
 module.exports = {
     entry: './src',
@@ -30,7 +31,8 @@ module.exports = {
     },
     plugins: [
         new webpack.DefinePlugin({
-            __CONFIG_URL: JSON.stringify(CONFIG_URL),
+            __FUNCTIONS_URL: JSON.stringify(FUNCTIONS_URL),
+            __BASE_URL: JSON.stringify(BASE_URL)
         })
     ]
 };
