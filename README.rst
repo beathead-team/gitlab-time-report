@@ -43,6 +43,7 @@ Setup development environment
         gitlab.projects="projects_search_term" \
         gitlab.oauth.client_id="gitlab_oauth_client_id" \
         gitlab.oauth.redirect_uri="http://localhost:5000/auth/oauth/token" \
+        gitlab.oauth.authorized_uri="http://localhost:3030" \
         gitlab.oauth.client_secret="gitlab_oauth_client_secret" \
         database.database_url="https://database_url.firebaseio.com" \
         database.project_id="project_id" \
@@ -64,6 +65,7 @@ Setup development environment
    - ``gitlab.oauth.client_id`` client_id from gitlab app
    - ``gitlab.oauth.client_secret`` client_secret from gitlab app
    - ``gitlab.oauth.redirect_uri`` the url in the firebase functions to redirect from gitlab
+   - ``gitlab.oauth.authorized_uri`` the url to redirect after gitlab token has been received
    - ``database.database_url`` firestore url from firebase console
    - ``database.project_id`` project_id from firebase console
    - ``database.client_email`` client_email from firebase console
@@ -89,7 +91,8 @@ Setup development environment
         gitlab.members="user1;user2;user3" \
         gitlab.projects="projects_search_term" \
         gitlab.oauth.client_id="gitlab_oauth_client_id" \
-        gitlab.oauth.redirect_uri="http://localhost:5000/auth/oauth/token" \
+        gitlab.oauth.redirect_uri="https://your.firebase-app.url/auth/oauth/token" \
+        gitlab.oauth.authorized_uri="https://your.firebase-app.url" \
         gitlab.oauth.client_secret="gitlab_oauth_client_secret" \
         database.database_url="https://database_url.firebaseio.com" \
         database.project_id="project_id" \
