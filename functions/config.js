@@ -11,15 +11,6 @@ if (!functions.config().gitlab) {
     throw new Error(`mandatory functions config section 'gitlab' is missing`);
 }
 
-admin.initializeApp({
-    credential: admin.credential.cert({
-        projectId: functions.config().database.project_id,
-        clientEmail: functions.config().database.client_email,
-        privateKey: Buffer.from(functions.config().database.private_key, 'base64').toString()
-    }),
-    databaseURL: functions.config().database.database_url
-});
-
 const db = admin.firestore();
 
 async function getUsername(oauthToken) {
@@ -33,6 +24,7 @@ async function getUsername(oauthToken) {
 async function getConfig(username) {
     const config = {
         gitlab: {
+            username,
             url: functions.config().gitlab.url,
             membersSearchTerms: functions.config().gitlab.members,
             projectSearchTerms: functions.config().gitlab.projects

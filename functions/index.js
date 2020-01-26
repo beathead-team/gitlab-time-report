@@ -1,7 +1,9 @@
 const functions = require('firebase-functions');
 const express = require('express');
 const basicAuth = require('basic-auth');
-const session = require('express-session');
+const admin = require('firebase-admin');
+
+require('./admin');
 const auth = require('./auth');
 const config = require('./config');
 
@@ -38,11 +40,6 @@ function allowCors(req, res, next) {
 const app = express();
 
 app.use(allowCors);
-app.use(session({
-    secret: (functions.config().session && functions.config().session.secret) || 'default',
-    resave: false,
-    saveUninitialized: true
-}));
 
 if (functions.config().basicauth) {
     app.use(checkBasicAuth);
