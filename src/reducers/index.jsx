@@ -1,5 +1,6 @@
 import {combineReducers} from 'redux';
 
+import auth from './auth';
 import issues from './issues';
 import members from './members';
 import filters from './filters';
@@ -11,6 +12,7 @@ import issuesSpentTime from './issuesSpentTime';
 import loadingProgress from './loadingProgress';
 
 let mainReducer = combineReducers({
+    auth,
     issues,
     issueNotes,
     issuesSpentTime,

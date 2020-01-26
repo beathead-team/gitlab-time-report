@@ -11,7 +11,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import App from './components/App';
 import {createGitlabApiMiddleware} from './middlewares/gitlabApi';
 import createSagaMiddleware from 'redux-saga';
-import {extractGitlabToken, fetchGitlabConfig, redirectToOauth} from './functions';
+import {extractGitlabToken, fetchGitlabConfig, hideRootLoader, redirectToOauth} from './functions';
 import mainReducer from './reducers';
 import {mainSaga} from './sagas';
 import {removeParamsFromUrlQuery} from "./utils";
@@ -66,6 +66,8 @@ function initFromConfigAndToken(config, gitlabToken) {
     )(createStore);
     const store = createStoreWithMiddleware(mainReducer, {
         settings: {
+            gitlabUrl: gitlab.url,
+            username: gitlab.username,
             membersSearchTerms: gitlab.membersSearchTerms ? gitlab.membersSearchTerms.split(';') : null,
             projectsSearchTerm: gitlab.projectSearchTerms || null,
         }
@@ -79,4 +81,6 @@ function initFromConfigAndToken(config, gitlabToken) {
         </Provider>,
         document.getElementById('app')
     );
+
+    hideRootLoader();
 }
