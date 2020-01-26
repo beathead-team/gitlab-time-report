@@ -22,12 +22,13 @@ async function getUsername(oauthToken) {
 }
 
 async function getConfig(username) {
+    const { members, projects } = functions.config().gitlab;
     const config = {
         gitlab: {
             username,
             url: functions.config().gitlab.url,
-            membersSearchTerms: functions.config().gitlab.members,
-            projectSearchTerms: functions.config().gitlab.projects
+            membersSearchTerms: members.length ? members : username,
+            projectSearchTerms: projects
         }
     };
     const configsRef = db.collection('configs');
