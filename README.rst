@@ -49,7 +49,6 @@ Setup development environment
         database.project_id="project_id" \
         database.private_key="base64_private_key_string" \
         database.client_email="firebase-adminsdk-73ubs@your_project.iam.gserunt.com" \
-        session.secret="session_secret" \
         express.cors="http://localhost:3030"
 
         npm run firebase-serve
@@ -70,7 +69,6 @@ Setup development environment
    - ``database.project_id`` project_id from firebase console
    - ``database.client_email`` client_email from firebase console
    - ``database.private_key`` base64 encoded string of the private key to access firebase admin sdk
-   - ``session.secret`` secret value to be used for session
    - ``express.cors`` sets cors Access-Control-Allow-Origin for getting the config
    - ``LISTEN_HOST`` is ``localhost`` by default
    - ``LISTEN_PORT`` is ``3030`` by default
@@ -98,7 +96,6 @@ Setup development environment
         database.project_id="project_id" \
         database.private_key="base64_private_key_string" \
         database.client_email="firebase-adminsdk-73ubs@your_project.iam.gserunt.com" \
-        session.secret="session_secret" \
         basicauth.name="username" \
         basicauth.password="password" \
         express.cors="https://your.firebase-app.url"
