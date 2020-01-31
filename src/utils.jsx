@@ -1,6 +1,14 @@
 export const MAX_DATE_VALUE = 8640000000000000;
 export const MIN_DATE_VALUE = -MAX_DATE_VALUE;
 
+export const removeParamsFromUrlQuery = (url, params) => {
+    const x = new URL(url);
+    if (params) {
+        params.forEach(param => x.searchParams.delete(param));
+    }
+    return x.toString();
+};
+
 export const getHours = (seconds) => seconds / 3600;
 
 export const formatHours = (hours, empty='-') => hours !== undefined ? hours.toFixed(1) : empty;

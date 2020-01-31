@@ -51,7 +51,7 @@ export const createGitlabApiMiddleware = (instanceUrl, accessToken) => {
                     const { url, args, paginated } = actionPayload;
                     result = fetchPart(`${instanceUrl}/api/v4/${url.replace(/^\/?/, '')}`, {
                         ...args,
-                        private_token: accessToken,
+                        access_token: accessToken,
                     }, paginated ? 1 : null);
                 }
 

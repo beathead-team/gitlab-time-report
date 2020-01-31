@@ -24,6 +24,7 @@ import MemberTable from './MemberTable';
 import { fetchIssueNotes, issueNotesSet } from '../actions/issueNotes';
 import { parseIssueSpentTime } from '../actions/issueSpentTime';
 import { addLoadingProgress, extendLoadingProgressTarget, setLoadingProgressTarget } from "../actions/loadingProgress";
+import { logout } from "../actions/auth";
 
 
 class Dashboard extends React.Component {
@@ -116,6 +117,9 @@ class Dashboard extends React.Component {
             maxTime = this.getDueDate();
         return (
             <div className="dashboard">
+                <div className="auth">
+                    You logged in as a gitlab user <strong>{this.props.username}</strong>. <a href="#" onClick={() => this.props.logout(this.props.settings)}>Clear access token and redirect to gitlab</a>
+                </div>
                 <div className="total">
                     <TitledValue title="Total Spent" value={formatHours(this.props.spentHours)}/>
                     <TitledValue title="Total Estimate" value={formatHours(this.props.estimateHours)} max={this.props.totalCapacity}/>
@@ -224,6 +228,7 @@ export default connect(
             issuesSpentTime,
             allMembers,
             members,
+            username: state.settings && state.settings.username,
             settings: state.settings,
             milestones: state.milestones,
             projects: state.projects,
@@ -284,6 +289,9 @@ export default connect(
                         });
                     });
                 });
+            },
+            logout: (settings) => {
+                dispatch(logout(settings.gitlabUrl, settings.username));
             },
             filterProjects: (projects) => {
                 dispatch(setFilters(getFilters({projects})));
